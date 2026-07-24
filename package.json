@@ -1,0 +1,23 @@
+{
+  "name": "sahara",
+  "version": "1.0.0",
+  "description": "AI Powered Mental Wellness Platform",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MANISH-github07/Sahara.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MANISH-github07/Sahara/issues"
+  },
+  "homepage": "https://github.com/MANISH-github07/Sahara#readme"
+}
