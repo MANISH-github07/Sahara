@@ -1,0 +1,56 @@
+# ─── Node dependencies ────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+
+# ─── Environment variables — NEVER commit these ────────────────────────
+.env
+.env.local
+.env.*.local
+server/.env
+client/.env.local
+
+# ─── Build output ──────────────────────────────────────────────────────
+dist/
+dist-ssr/
+build/
+client/dist/
+
+# ─── Uploads (user-generated content — store in cloud in production) ───
+server/uploads/*
+!server/uploads/.gitkeep
+
+# ─── Logs ──────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ─── OS files ──────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+
+# ─── Editor ────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ─── Test files ────────────────────────────────────────────────────────
+server/test-*.js
+server/fix-*.js
+server/check-*.js
+server/find-*.js
+
+# ─── Vite cache ────────────────────────────────────────────────────────
+.vite/
+
+# ─── Package manager locks (optional — keep if you want reproducible installs) ─
+# package-lock.json
