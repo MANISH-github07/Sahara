@@ -1,0 +1,37 @@
+services:
+  - type: web
+    name: sahara-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false          # Set this in Render dashboard — never hardcode
+      - key: JWT_SECRET
+        generateValue: true  # Render auto-generates a secure random value
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: OPENROUTER_API_KEY
+        sync: false          # Set in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: liquid/lfm-2.5-2.6b:free
+      - key: RESEND_API_KEY
+        sync: false          # Set in Render dashboard
+      - key: EMAIL_FROM
+        value: SAHARA <onboarding@resend.dev>
+      - key: CLIENT_URL
+        sync: false          # Set to your Vercel URL after deploying frontend
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: MAX_FILE_SIZE_MB
+        value: 5
