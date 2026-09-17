@@ -19,12 +19,21 @@ const nodemailer = require('nodemailer')
 const axios      = require('axios')
 
 // ─── Choose provider ──────────────────────────────────────────────────────────
+// Priority: SMTP first (works for ALL recipients), then Resend (sandbox-limited),
+// then console (dev mode — no real emails sent).
 const getProvider = () => {
+  if (
+    process.env.SMTP_USER &&
+    process.env.SMTP_PASS &&
+    process.env.SMTP_USER !== 'your_gmail@gmail.com' &&
+    process.env.SMTP_PASS !== 'your_gmail_app_password_here'
+  ) return 'smtp'
   if (process.env.RESEND_API_KEY && process.env.RESEND_API_KEY !== 'your_resend_api_key_here') return 'resend'
-  if (process.env.SMTP_USER && process.env.SMTP_PASS &&
-      process.env.SMTP_USER !== 'your_gmail@gmail.com') return 'smtp'
-  return 'console'   // dev mode — log emails to console instead of sending
+  return 'console'
 }
+
+// Log provider at startup so you can confirm in Render logs
+console.log(`📧  [MAILER] provider=${getProvider()} | SMTP_USER=${process.env.SMTP_USER || 'NOT SET'}`)
 
 // ─── Resend provider ──────────────────────────────────────────────────────────
 const sendViaResend = async ({ to, subject, html }) => {
@@ -91,14 +100,37 @@ const sendMail = async ({ to, subject, html }) => {
   } catch (err) {
     // Swallow email errors — never crash the server because email failed
     console.error(`❌  Email send failed (${provider}): ${err.response?.data?.message || err.message}`)
-    if (provider === 'smtp' && err.message?.includes('auth')) {
-      console.error('   → SMTP auth failed. For Gmail, use an App Password: https://support.google.com/accounts/answer/185833')
+    if (provider === 'smtp' && (err.message?.includes('auth') || err.message?.includes('535') || err.message?.includes('534'))) {
+      console.error('   → SMTP auth failed. Check SMTP_USER and SMTP_PASS in Render env vars.')
+      console.error('   → For Gmail: SMTP_PASS must be a 16-char App Password (no spaces), not your regular password.')
+      console.error('   → Guide: https://support.google.com/accounts/answer/185833')
+    }
+    if (provider === 'smtp' && err.message?.includes('ECONNREFUSED')) {
+      console.error('   → Cannot connect to smtp.gmail.com:587 — check SMTP_HOST and SMTP_PORT')
     }
     if (provider === 'resend' && err.response?.status === 401) {
       console.error('   → Resend API key invalid. Check RESEND_API_KEY in server/.env')
     }
   }
 }
+
+// ─── SMTP connection test (used by /api/health/email endpoint) ───────────────
+const testSmtpConnection = async () => {
+  return new Promise((resolve) => {
+    const transporter = nodemailer.createTransport({
+      host:   process.env.SMTP_HOST || 'smtp.gmail.com',
+      port:   parseInt(process.env.SMTP_PORT) || 587,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    })
+    transporter.verify((err) => {
+      if (err) resolve({ ok: false, error: err.message })
+      else     resolve({ ok: true })
+    })
+  })
+}
+
+module.exports.testSmtpConnection = testSmtpConnection
 
 // ─── HTML Email Templates ────────────────────────────────────────────────────
 

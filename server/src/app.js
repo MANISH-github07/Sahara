@@ -7,10 +7,15 @@ const { apiLimiter } = require('./middleware/rateLimiter')
 
 const app = express()
 
+// ── Trust Render/Vercel proxy (fixes rate-limiter X-Forwarded-For error) ─────
+app.set('trust proxy', 1)
+
 // ── Security headers ──────────────────────────────────────────────────
 app.use(helmet())
 
 // ── CORS ──────────────────────────────────────────────────────────────
+// CLIENT_URL in Render env can be comma-separated list of allowed origins
+// e.g. https://sahara-six-swart.vercel.app,https://sahara-8r3g7nghi-sahara14.vercel.app
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:4173',
@@ -20,7 +25,12 @@ const allowedOrigins = [
 app.use(cors({
   origin: (origin, callback) => {
     // Allow server-to-server requests (no origin) and listed origins
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Also allow any *.vercel.app subdomain for preview deployments
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/sahara.*\.vercel\.app$/.test(origin)
+    ) {
       callback(null, true)
     } else {
       callback(new Error(`CORS: origin ${origin} not allowed`))
@@ -53,6 +63,33 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date(),
     ai:        process.env.OPENROUTER_API_KEY ? 'configured' : 'not configured',
   })
+})
+
+// ── Email diagnostics (public — remove after debugging) ──────────────
+app.get('/api/health/email', async (req, res) => {
+  const { testSmtpConnection } = require('./config/mailer')
+  const provider  = process.env.SMTP_USER && process.env.SMTP_PASS &&
+                    process.env.SMTP_USER !== 'your_gmail@gmail.com' &&
+                    process.env.SMTP_PASS !== 'your_gmail_app_password_here'
+                    ? 'smtp'
+                    : process.env.RESEND_API_KEY ? 'resend' : 'console'
+
+  const info = {
+    provider,
+    SMTP_USER:    process.env.SMTP_USER    || 'NOT SET',
+    SMTP_HOST:    process.env.SMTP_HOST    || 'NOT SET',
+    SMTP_PORT:    process.env.SMTP_PORT    || 'NOT SET',
+    SMTP_PASS_SET: process.env.SMTP_PASS ? `SET (${process.env.SMTP_PASS.length} chars)` : 'NOT SET',
+    RESEND_KEY_SET: process.env.RESEND_API_KEY ? 'SET' : 'NOT SET',
+    CLIENT_URL:   process.env.CLIENT_URL   || 'NOT SET',
+  }
+
+  if (provider === 'smtp') {
+    const test = await testSmtpConnection()
+    info.smtp_connection = test.ok ? '✅ connected' : `❌ ${test.error}`
+  }
+
+  res.json(info)
 })
 
 // ── Seed endpoint (protected by SEED_SECRET) ──────────────────────────

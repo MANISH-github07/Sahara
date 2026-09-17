@@ -7,7 +7,8 @@ import ProtectedRoute from './routes/ProtectedRoute'
 // Public
 import LandingPage       from './pages/LandingPage'
 import { LoginPage, RegisterPage, ForgotPasswordPage } from './pages/auth'
-import VerifyEmailPage  from './pages/auth/VerifyEmailPage'
+import VerifyEmailPage      from './pages/auth/VerifyEmailPage'
+import ResetPasswordPage    from './pages/auth/ResetPasswordPage'
 import UnauthorizedPage  from './pages/UnauthorizedPage'
 import NotFoundPage      from './pages/NotFoundPage'
 
@@ -67,6 +68,7 @@ export default function App() {
             <Route path="/login"            element={<LoginPage />} />
             <Route path="/register"         element={<RegisterPage />} />
             <Route path="/forgot-password"  element={<ForgotPasswordPage />} />
+            <Route path="/reset-password"   element={<ResetPasswordPage />} />
             <Route path="/verify-email"     element={<VerifyEmailPage />} />
             <Route path="/unauthorized"     element={<UnauthorizedPage />} />
 

@@ -22,6 +22,10 @@ export const authApi = {
     return client.post(API_ENDPOINTS.FORGOT_PASSWORD, { email })
   },
 
+  async resetPassword(email, token, password) {
+    return client.post(API_ENDPOINTS.RESET_PASSWORD, { email, token, password })
+  },
+
   async me() {
     return client.get(API_ENDPOINTS.ME)
   },
